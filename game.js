@@ -151,37 +151,17 @@ input.handle = (function() {
 for (var i = 0; i < 100; i++) {
 	view.bits.push(new Bit(Math.random() * width, Math.random() * height));
 }
-/*
-view.attractors.push(new Attractor(250, 150));
-(function() {
-	var a = new Attractor(100, 100);
-	a.count = 100; a.countString = "100";
-	view.attractors.push(a);
-})();
-*/
 input.push({
 	type: "attract", attractor: null,
 	from: +new Date(), to: +new Date() + 1000,
 	centre: { x: 100, y: 100 }
 });
-
 input.push({
 	type: "attract", attractor: null,
 	from: +new Date(), to: +new Date() + 1000,
 	centre: { x: 100, y: 201 }
 });
 
-/*
-window.addEventListener("mousemove", function(e) {
-	if (e.target === HTML) {
-		mouse.x = e.offsetX; mouse.y = e.offsetY;
-		mouse.active = true;
-	}
-	else {
-		mouse.active = false;
-	}
-});
-*/
 window.addEventListener("mousedown", function(e) {
 	if (e.button === 1) {
 		input.push(drag = {
