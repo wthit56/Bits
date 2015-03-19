@@ -6,16 +6,32 @@ if (!HTML.getContext || !(context = HTML.getContext("2d"))) {
 	throw HTML.innerHTML = "Browser does not support Canvas.";
 }
 
-var width = HTML.width = 500, height = HTML.height = 300;
 HTML.offset = null;
 
 var circle = Math.PI * 2;
 
 var view = {
+	setup: function() {
+		context.fillStyle = "black";
+		context.font = "bold " + Attractor.radius + "px 'courier new'";
+		console.log(context.font);
+		context.textAlign = "center";
+		context.textBaseline = "middle";
+	},
 	bits: [], attractors: [],
 	offset: { x: 0, y: 0 },
 	coord: function(dimension, value) {
 		return value - HTML.offset[dimension] - this.offset[dimension];
+	},
+	size: {
+		x: 0, y: 0,
+		update: function() {
+			this.x = HTML.width = window.innerWidth;
+			this.y = HTML.height = window.innerHeight;
+			this.stale = false;
+			view.setup();
+		},
+		stale: true
 	}
 };
 
@@ -55,10 +71,7 @@ Attractor.render = function(attractor) {
 	context.fillText(attractor.countString, attractor.x, attractor.y, Attractor.radius * Math.PI / 2);
 };
 
-context.fillRect(0, 0, width, height);
-context.font = "bold " + Attractor.radius + "px courier new";
-context.textAlign = "center";
-context.textBaseline = "middle";
+context.fillRect(0, 0, Infinity, Infinity);
 
 var mouse = { x: -1, y: -1, active: false };
 var input = [], drag, attract;
@@ -149,7 +162,7 @@ input.handle = (function() {
 })();
 
 for (var i = 0; i < 100; i++) {
-	view.bits.push(new Bit(Math.random() * width, Math.random() * height));
+	view.bits.push(new Bit(Math.random() * 100, Math.random() * 100));
 }
 input.push({
 	type: "attract", attractor: null,
@@ -201,11 +214,17 @@ window.addEventListener("mouseup", function(e) {
 	}
 });
 
+window.addEventListener("resize", function() { view.size.stale = true; });
+
 requestAnimationFrame(function() {
 	HTML.offset = { x: HTML.offsetLeft, y: HTML.offsetTop };
 });
 
 requestAnimationFrame(function frame() {
+	if (view.size.stale) { // resize
+		view.size.update();
+	}
+
 	{ // update
 		for (var i = 0, l = input.length; i < l; i++) {
 			if (input.handle(input[i])) {
@@ -219,7 +238,7 @@ requestAnimationFrame(function frame() {
 
 	{ // render
 		// bg
-		context.fillRect(0, 0, width, height);
+		context.fillRect(0, 0, view.size.x, view.size.y);
 
 		// view
 		context.save();
