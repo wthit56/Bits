@@ -11,11 +11,6 @@ HTML.offset = null;
 
 var circle = Math.PI * 2;
 
-context.fillRect(0, 0, width, height);
-context.font = "bold 120px courier new";
-context.textAlign = "center";
-context.textBaseline = "middle";
-
 var view = {
 	bits: [], attractors: [],
 	offset: { x: 0, y: 0 },
@@ -39,100 +34,142 @@ function Attractor(x, y) {
 	this.interfacing = false;
 	this.count = 1; this.countString = "1";
 }
-Attractor.clickRange = 100;
+Attractor.radius = 50; Attractor.radiusSq = Attractor.radius * Attractor.radius;
+Attractor.clickRange = Attractor.radius * 2;
 Attractor.clickRangeSq = Attractor.clickRange * Attractor.clickRange;
-Attractor.countPerMS = 10 / 1000;
+Attractor.countPerMS = 50 / 1000;
 Attractor.render = function(attractor) {
 	context.save();
 	context.globalAlpha = 0.25 + (0.25 * attractor.interfacing);
 	if (attractor.interfacing && (attractor.count === 100)) { context.fillStyle = "red"; }
 	context.beginPath();
-	context.arc(attractor.x, attractor.y, 100, 0, circle, true);
+	context.arc(attractor.x, attractor.y, Attractor.radius, 0, circle, true);
 	context.fill();
 	context.restore();
 
 	context.beginPath();
-	context.arc(attractor.x, attractor.y, Attractor.clickRange, 0, circle, true);
-	context.arc(attractor.x, attractor.y, Attractor.clickRange * 0.9, 0, circle, false);
+	context.arc(attractor.x, attractor.y, Attractor.radius, 0, circle, true);
+	context.arc(attractor.x, attractor.y, Attractor.radius * 0.9, 0, circle, false);
 	context.fill();
 
-	context.fillText(attractor.countString, attractor.x, attractor.y, Attractor.clickRange * Math.PI / 2);
+	context.fillText(attractor.countString, attractor.x, attractor.y, Attractor.radius * Math.PI / 2);
 };
+
+context.fillRect(0, 0, width, height);
+context.font = "bold " + Attractor.radius + "px courier new";
+context.textAlign = "center";
+context.textBaseline = "middle";
+
+var mouse = { x: -1, y: -1, active: false };
+var input = [], drag, attract;
+input.handle = (function() {
+	var attractors = view.attractors, range = Attractor.clickRangeSq, radius = Attractor.radiusSq;
+	var attractorCandidate = { distanceSq: -1, attractor: null };
+	var i, l;
+	var x, y;
+	var a, b;
+	var to;
+	
+	return function(input) {
+		if (input.type === "drag") {
+			if (input.from.x !== input.to.x) { view.offset.x += input.to.x - input.from.x; }
+			if (input.from.y !== input.to.y) { view.offset.y += input.to.y - input.from.y; }
+
+			if (input === drag) {
+				input.from.x = input.to.x;
+				input.from.y = input.to.y;
+			}
+			else { return true; }
+		}
+		else if (input.type === "attract") {
+			if (!input.attractor) {
+				// offset
+				logger.style.position = "absolute";
+				logger.style.left = input.centre.x + "px";
+				logger.style.top = input.centre.y + "px";
+				logger.style.backgroundColor = "red";
+
+				x = view.coord("x", input.centre.x); y = view.coord("y", input.centre.y);
+
+				for (i = 0, l = attractors.length; i < l; i++) {
+					a = x - attractors[i].x; a *= a;
+					b = y - attractors[i].y; b *= b;
+
+					if (a + b <= radius) {
+						attractorCandidate.attractor = attractors[i];
+						break;
+					}
+					else if (
+						(a + b <= range) && 
+						((attractorCandidate.distanceSq === -1) || (a + b < attractorCandidate.distanceSq))
+					) {
+						attractorCandidate.distanceSq = a + b;
+						attractorCandidate.attractor = attractors[i];
+					}
+				}
+
+				if (attractorCandidate.attractor) {
+					input.attractor = attractorCandidate.attractor;
+					attractorCandidate.attractor.interfacing = true;
+					
+					// reset
+					attractorCandidate.attractor = null;
+					attractorCandidate.distanceSq = -1;
+				}
+				else {
+					// add new Attractor
+					view.attractors.push(input.attractor = new Attractor(x, y));
+				}
+			}
+
+			if (input.attractor.count < 100) {
+				to = (input.to !== null ? input.to : +new Date());
+
+				if (input.from < to) {
+					input.attractor.count += (to - input.from) * Attractor.countPerMS;
+					if (input.attractor.count > 100) {
+						input.attractor.count = 100;
+						input.attractor.countString = "100";
+					}
+					else {
+						input.attractor.countString = (input.attractor.count | 0) + "";
+					}
+
+					// reset time
+					input.from = to;
+				}
+			}
+
+			if (input !== attract) {
+				input.attractor.interfacing = false;
+				return true;
+			}
+		}
+	};
+})();
 
 for (var i = 0; i < 100; i++) {
 	view.bits.push(new Bit(Math.random() * width, Math.random() * height));
 }
+/*
 view.attractors.push(new Attractor(250, 150));
+(function() {
+	var a = new Attractor(100, 100);
+	a.count = 100; a.countString = "100";
+	view.attractors.push(a);
+})();
+*/
+input.push({
+	type: "attract", attractor: null,
+	from: +new Date(), to: +new Date() + 1000,
+	centre: { x: 100, y: 100 }
+});
 
-var mouse = { x: -1, y: -1, active: false };
-var input = [], drag, attract;
-input.handle = function(input) {
-	if (input.type === "drag") {
-		if (input.from.x !== input.to.x) { view.offset.x += input.to.x - input.from.x; }
-		if (input.from.y !== input.to.y) { view.offset.y += input.to.y - input.from.y; }
-
-		if (input === drag) {
-			input.from.x = input.to.x;
-			input.from.y = input.to.y;
-		}
-		else { return true; }
-	}
-	else if (input.type === "attract") {
-		console.log("handle attract");
-		if (!input.attractor) {
-			var attractors = view.attractors, range = Attractor.clickRangeSq;
-			var found = false;
-			
-			// offset
-			logger.style.position = "absolute";
-			logger.style.left = input.centre.x + "px";
-			logger.style.top = input.centre.y + "px";
-			logger.style.backgroundColor = "red";
-
-			var x = view.coord("x", input.centre.x), y = view.coord("y", input.centre.y);
-			var a, b;
-
-			for (var i = 0, l = attractors.length; i < l; i++) {
-				a = x - attractors[i].x; a *= a;
-				b = y - attractors[i].y; b *= b;
-				console.log(a + b, range);
-				if (a + b <= range) {
-					input.attractor = attractors[i];
-					attractors[i].interfacing = true;
-					found = true;
-					break;
-				}
-			}
-
-			if (!found) {
-				attract = null; return true;
-			}
-		}
-
-		if (input.attractor.count < 100) {
-			var to = +new Date();
-
-			if (input.from < to) {
-				input.attractor.count += (to - input.from) * Attractor.countPerMS;
-				if (input.attractor.count > 100) {
-					input.attractor.count = 100;
-					input.attractor.countString = "100";
-				}
-				else {
-					input.attractor.countString = (input.attractor.count | 0) + "";
-				}
-
-				// reset time
-				input.from = to;
-			}
-		}
-
-		if (input !== attract) {
-			input.attractor.interfacing = false;
-			return true;
-		}
-	}
-};
+input.push({
+	type: "attract", attractor: null,
+	from: +new Date(), to: +new Date() + 1000,
+	centre: { x: 100, y: 201 }
+});
 
 /*
 window.addEventListener("mousemove", function(e) {
@@ -156,7 +193,7 @@ window.addEventListener("mousedown", function(e) {
 	else if (e.button === 0) {
 		input.push(attract = {
 			type: "attract", attractor: null,
-			from: +new Date(),
+			from: +new Date(), to: null,
 			centre: { x: e.pageX, y: e.pageY }
 		});
 	}
