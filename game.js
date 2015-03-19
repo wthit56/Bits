@@ -43,18 +43,20 @@ Attractor.clickRange = 100;
 Attractor.clickRangeSq = Attractor.clickRange * Attractor.clickRange;
 Attractor.countPerMS = 10 / 1000;
 Attractor.render = function(attractor) {
+	context.save();
+	context.globalAlpha = 0.25 + (0.25 * attractor.interfacing);
+	if (attractor.interfacing && (attractor.count === 100)) { context.fillStyle = "red"; }
+	context.beginPath();
+	context.arc(attractor.x, attractor.y, 100, 0, circle, true);
+	context.fill();
+	context.restore();
+
 	context.beginPath();
 	context.arc(attractor.x, attractor.y, Attractor.clickRange, 0, circle, true);
 	context.arc(attractor.x, attractor.y, Attractor.clickRange * 0.9, 0, circle, false);
 	context.fill();
-	
+
 	context.fillText(attractor.countString, attractor.x, attractor.y, Attractor.clickRange * Math.PI / 2);
-	
-	context.globalAlpha = 0.25 + (0.25 * attractor.interfacing);
-	context.beginPath();
-	context.arc(attractor.x, attractor.y, 100, 0, circle, true);
-	context.fill();
-	context.globalAlpha = 1;
 };
 
 for (var i = 0; i < 100; i++) {
@@ -107,17 +109,26 @@ input.handle = function(input) {
 			}
 		}
 
-		var to = +new Date();
+		if (input.attractor.count < 100) {
+			var to = +new Date();
 
-		if (input.from < to) {
-			input.attractor.count += (to - input.from) * Attractor.countPerMS;
-			input.attractor.countString = (input.attractor.count | 0) + "";
+			if (input.from < to) {
+				input.attractor.count += (to - input.from) * Attractor.countPerMS;
+				if (input.attractor.count > 100) {
+					input.attractor.count = 100;
+					input.attractor.countString = "100";
+				}
+				else {
+					input.attractor.countString = (input.attractor.count | 0) + "";
+				}
 
-			// reset time
-			input.from = to;
+				// reset time
+				input.from = to;
+			}
 		}
 
 		if (input !== attract) {
+			input.attractor.interfacing = false;
 			return true;
 		}
 	}
@@ -151,11 +162,9 @@ window.addEventListener("mousedown", function(e) {
 	}
 });
 window.addEventListener("mousemove", function(e) {
-	if (e.button === 1) {
-		if (drag) {
-			drag.to.x = e.pageX;
-			drag.to.y = e.pageY;
-		}
+	if (drag) {
+		drag.to.x = e.pageX;
+		drag.to.y = e.pageY;
 	}
 });
 window.addEventListener("mouseup", function(e) {
@@ -181,8 +190,6 @@ requestAnimationFrame(function() {
 
 requestAnimationFrame(function frame() {
 	{ // update
-		
-
 		for (var i = 0, l = input.length; i < l; i++) {
 			if (input.handle(input[i])) {
 				input.splice(i, 1);
