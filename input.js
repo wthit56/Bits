@@ -42,21 +42,13 @@ var input = (function() {
 						found = flags.findByPoint(x, y);
 						if (found) {
 							input.flag = found;
-							input.action = "interfacing";
 							flags.temp.display(found);
-							console.log("interfacing...");
 							found = null;
-						}
-						else {
-							input.flag = flags.add(x, y);
-							input.action = "adding";
 						}
 					}
 					
-					if (input.action === "interfacing") {
-						flags.temp.x = view.coord.x(input.to.x);
-						flags.temp.y = view.coord.y(input.to.y);
-					}
+					flags.temp.x = view.coord.x(input.to.x);
+					flags.temp.y = view.coord.y(input.to.y);
 
 					if (input !== flagging) {
 						this.splice(i, 1); i--; l--;

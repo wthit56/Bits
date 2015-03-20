@@ -2,6 +2,7 @@ HTML = document.createElement("CANVAS")
 var context;
 if (HTML.getContext && (context = HTML.getContext("2d"))) {
 	view.setup();
+	flags.add(0, 0);
 
 	window.addEventListener("resize", function() {
 		view.size.stale = true;
