@@ -3,6 +3,7 @@
 	<title>Bits</title>
 	<head>
 		<script type="text/javascript">var HTML;</script>
+		<script type="text/javascript" src="utilities.js"></script>
 		<script type="text/javascript" src="flags.js"></script>
 		<script type="text/javascript" src="view.js"></script>
 		<script type="text/javascript" src="input.js"></script>
@@ -16,6 +17,9 @@
 			document.body.appendChild(HTML);
 
 			input.down({ button: 0, pageX: 100, pageY: 100 });
+			input.up({ button: 0 });
+
+			input.down({ button: 0, pageX: 200, pageY: 100 });
 			input.up({ button: 0 });
 		</script>
 	</body>

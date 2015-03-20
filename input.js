@@ -4,7 +4,7 @@ var input = (function() {
 		if (e.button === 0) { // left-click
 			if (!flagging) {
 				input.push(flagging = {
-					type: "flag", flag: null,
+					type: "flag", flag: null, action: "",
 					from: { x: e.pageX, y: e.pageY },
 					to: { x: e.pageX, y: e.pageY }
 				});
@@ -22,6 +22,7 @@ var input = (function() {
 			if (flagging) {
 				flagging.to.x = e.pageX;
 				flagging.to.y = e.pageY;
+				flags.temp.place();
 				flagging = null;
 			}
 		}
@@ -35,13 +36,28 @@ var input = (function() {
 				input = this[i];
 				if (input.type === "flag") {
 					if (!input.flag) {
-						x = view.coord("x", input.from.x);
-						y = view.coord("y", input.from.y);
+						x = view.coord.x(input.from.x);
+						y = view.coord.y(input.from.y);
 
 						found = flags.findByPoint(x, y);
-						if (found) { input.flag = found; found = null; }
-						else { input.flag = flags.add(x, y); }
+						if (found) {
+							input.flag = found;
+							input.action = "interfacing";
+							flags.temp.display(found);
+							console.log("interfacing...");
+							found = null;
+						}
+						else {
+							input.flag = flags.add(x, y);
+							input.action = "adding";
+						}
 					}
+					
+					if (input.action === "interfacing") {
+						flags.temp.x = view.coord.x(input.to.x);
+						flags.temp.y = view.coord.y(input.to.y);
+					}
+
 					if (input !== flagging) {
 						this.splice(i, 1); i--; l--;
 					}

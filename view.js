@@ -8,8 +8,9 @@ var view = {
 	centre: {
 		x: 150, y: 75
 	},
-	coord: function(dimension, value) {
-		return value - this.centre[dimension];
+	coord: {
+		x: function(value) { return value - view.centre.x; },
+		y: function(value) { return value - view.centre.y; }
 	},
 	size: {
 		x: 300, y: 150, stale: true,
