@@ -22,7 +22,7 @@ var input = (function() {
 			if (flagging) {
 				flagging.to.x = e.pageX;
 				flagging.to.y = e.pageY;
-				Flag.temp.parent = null;
+				flags.temp.place();
 				flagging = null;
 			}
 		}
@@ -39,16 +39,16 @@ var input = (function() {
 						x = view.coord.x(input.from.x);
 						y = view.coord.y(input.from.y);
 
-						found = Flag.findNearest(x, y);
+						found = flags.findByPoint(x, y);
 						if (found) {
 							input.flag = found;
-							Flag.temp.parent = found;
+							flags.temp.display(found);
 							found = null;
 						}
 					}
 					
-					Flag.temp.x = view.coord.x(input.to.x);
-					Flag.temp.y = view.coord.y(input.to.y);
+					flags.temp.x = view.coord.x(input.to.x);
+					flags.temp.y = view.coord.y(input.to.y);
 
 					if (input !== flagging) {
 						this.splice(i, 1); i--; l--;

@@ -2,7 +2,7 @@ HTML = document.createElement("CANVAS")
 var context;
 if (HTML.getContext && (context = HTML.getContext("2d"))) {
 	view.setup();
-	Flag.add(0, 0);
+	flags.add(0, 0);
 
 	window.addEventListener("resize", function() {
 		view.size.stale = true;
@@ -14,14 +14,13 @@ if (HTML.getContext && (context = HTML.getContext("2d"))) {
 	requestAnimationFrame(function raf() {
 		view.size.update();
 		input.handle();
-		Flag.update();
 
 		//context.fillStyle = "hsl(0,0%,"+(Math.random()*0.05*100)+"%)";
 		context.fillRect(0, 0, view.size.x, view.size.y);
 
 		context.save();
 		context.translate(view.centre.x, view.centre.y);
-		Flag.render();
+		flags.render();
 		context.restore();
 
 		requestAnimationFrame(raf);
