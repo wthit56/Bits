@@ -1,11 +1,11 @@
 var drawTrail = (function() {
-	var width = 20, mid = width / 2;
+	var width = 20, mid = width / 2, tailOffset;
 	var dashLength = 40, gapLength = 20, lineLength = dashLength + gapLength;
 	var offset = 0, offsetSpeed = 100 / 1000, _offset = false;
 
 	var source = (function() {
 		var source = document.createElement("CANVAS");
-		source.width = 60; source.height = lineLength;
+		source.width = (width * 3) + 2; source.height = lineLength;
 
 		var context = source.getContext("2d");
 
@@ -41,12 +41,12 @@ var drawTrail = (function() {
 			context.closePath();
 			context.fill();
 
-			source.tailOffset = Math.ceil(radius - Math.sqrt((radius * radius) - ((x / 2) * (x / 2))));
+			tailOffset = Math.ceil(radius - Math.sqrt((radius * radius) - ((x / 2) * (x / 2))));
 
 			context.restore();
 		}
 		{ // dash
-			context.save(); context.fillStyle = gradient; context.translate(20, 0);
+			context.save(); context.fillStyle = gradient; context.translate(width + 1, 0);
 
 			context.beginPath();
 			context.moveTo(mid, 0);
@@ -60,23 +60,36 @@ var drawTrail = (function() {
 			context.fill(); context.restore();
 		}
 
+		/*
 		window.addEventListener("load", function() {
 			document.body.appendChild(source).style.cssText = (
 				"position: absolute; top:0; left: 0; border:1px solid #999;"
 			);
 		});
+		//*/
 
-		context.translate(20, 0);
-		context.rect(20, 0, 20, lineLength); context.clip();
+		context.translate((width + 1) * 2, 0);
+		context.beginPath(); context.rect(0, 0, 20, lineLength); context.clip();
 		source.render = function() {
-			context.clearRect(20, 0, 20, 80);
-			context.drawImage(source, width, 0, width, dashLength, width, -offset, 				width, dashLength);
-			context.drawImage(source, width, 0, width, dashLength, width, -offset + lineLength, width, dashLength);
+			context.clearRect(0, 0, width, lineLength);
+			context.drawImage(source, width + 1, 0, width, dashLength, 0, -offset, width, dashLength);
+			context.drawImage(source, width + 1, 0, width, dashLength, 0, lineLength-offset, width, dashLength);
+			//context.drawImage(source, (width + 1) * 2, 0, 0, dashLength, width, -offset,              width, dashLength);
+			//context.drawImage(source, (width + 1) * 2, 0, 0, dashLength, width, -offset + lineLength, width, dashLength);
 		};
 		source.pattern = null;
 
 		return source;
 	})();
+
+	var radius = Flag.radius;
+	var outFrom, outTo, outPoint;
+	//(function() {
+		var quarterCircle = Math.PI / 2;
+		var c = Math.asin((width / 2) / radius);
+		outFrom = -quarterCircle - c; outTo = -quarterCircle + c;
+		outPoint = radius + mid - Math.sqrt((radius * radius) - ((width / 2) * (width / 2)));
+	//})();
 
 	var line = Line.new(), pattern;
 	function drawTrail(from, to) {
@@ -90,9 +103,34 @@ var drawTrail = (function() {
 		
 		context.save();
 		context.rotate(line.angle);
-		context.translate(line.fromX - width * 2.5, line.fromY);
-		context.fillStyle = pattern;
-		context.fillRect((width * 2), line.fromY, width, -line.distance);
+		context.translate(line.fromX, line.fromY);
+
+		if (line.distance > radius) {
+			if (line.distance >= radius + mid) {
+				context.beginPath();
+				context.arc(0, 0, radius, -quarterCircle - c, -quarterCircle + c, false);
+				context.lineTo(mid, -(line.distance - mid));
+				context.lineTo(0, -(line.distance));
+				context.lineTo(-mid, -(line.distance - mid));
+				context.closePath();
+				context.clip();
+
+				context.drawImage(source, 0, 0, width, width, -mid, -Flag.radius - mid, width, width);
+				context.drawImage(source, 0, 0, width, width, -mid, -line.distance, width, width);
+
+				context.translate((-width * 2.5) - 2, 0);
+				context.fillStyle = pattern;
+				context.fillRect((width * 2) + 2, line.fromY, width, -line.distance);
+			}
+			else {
+				context.beginPath();
+				context.moveTo(0, -(radius + mid - tailOffset));
+				context.arc(0, 0, radius, -quarterCircle - c, -quarterCircle + c, false);
+				context.closePath();
+				context.fillStyle = "white"; context.fill();
+			}
+		}
+
 		context.restore();
 	};
 	drawTrail.update = (function() {

@@ -10,7 +10,7 @@ var Flag = (function() {
 
 	function Flag() { throw "Do not use `new Flag()`."; }
 	Flag.radius = radius;
-	
+
 	Flag.add = function(x, y, parent) {
 		var obj;
 		if (poolEmpty) {
@@ -72,7 +72,7 @@ var Flag = (function() {
 		return findFlag(x, y, true);
 	};
 	Flag.isNear = function(x, y) {
-		return !findFlag(x, y, false);
+		return !!findFlag(x, y, false);
 	};
 
 	var temp = Flag.temp = (function() {
@@ -88,8 +88,10 @@ var Flag = (function() {
 			update: function() {
 				if (parent) {
 					if (stale) {
-						show = Flag.isNear(x, y);
+						show = !Flag.isNear(x, y);
+						document.body.style.cursor = "none";
 						line.toX = x; line.toY = y;
+						stale = false;
 					}
 				}
 				if (dropping) {
@@ -97,12 +99,16 @@ var Flag = (function() {
 						Flag.add(x, y, this.parent);
 						show = false;
 					}
+					document.body.style.cursor = "auto";
 					this.parent = null;
 					dropping = false;
 				}
 			},
 			render: (function() {
 				function render() {
+					if (line.distanceSquared <= radiusSquared) {
+						document.body.style.cursor = "auto";
+					}
 					if (parent && (line.distanceSquared > radiusSquared) && show) {
 						context.save();
 
@@ -115,7 +121,13 @@ var Flag = (function() {
 				}
 				render.line = function() {
 					if (parent && (line.distanceSquared > radiusSquared)) {
-						drawTrail(parent, temp);
+						document.body.style.cursor = "none";
+						drawTrail(
+							parent, {
+								x: temp.x - (show ? line.normX * tempRadius : 0),
+								y: temp.y - (show ? line.normY * tempRadius : 0)
+							}
+						);
 					}
 				};
 
