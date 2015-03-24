@@ -1,7 +1,8 @@
 HTML = document.createElement("CANVAS")
+HTML.style.transform = "0, 0, 0";
 var context;
 if (HTML.getContext && (context = HTML.getContext("2d"))) {
-	view.setup();
+	view.setup(); console.log(view);
 	Flag.add(0, 0);
 
 	window.addEventListener("resize", function() {
@@ -16,11 +17,11 @@ if (HTML.getContext && (context = HTML.getContext("2d"))) {
 		input.handle();
 		Flag.update();
 
-		//context.fillStyle = "hsl(0,0%,"+(Math.random()*0.05*100)+"%)";
 		context.fillRect(0, 0, view.size.x, view.size.y);
 
 		context.save();
 		context.translate(view.centre.x, view.centre.y);
+
 		Flag.render();
 		context.restore();
 

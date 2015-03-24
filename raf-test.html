@@ -1,0 +1,12 @@
+<!doctype html>
+<canvas id="canvas"></canvas>
+<script>
+
+var context = canvas.getContext("2d");
+function frame() {
+	context.fillRect(0, 0, 300, 150);
+	requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+</script>

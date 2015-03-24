@@ -224,7 +224,6 @@ var Line = (function() {
     		if (c._a) { r = c.a; }
     		else {
     			r = c.a = Math.atan2(this.diffX, -this.diffY);
-    			console.log(r / (Math.PI / 180));
     			c._a = true;
     		}
     		c = null; return r;

@@ -9,6 +9,8 @@ var Flag = (function() {
 	var i;
 
 	function Flag() { throw "Do not use `new Flag()`."; }
+	Flag.radius = radius;
+	
 	Flag.add = function(x, y, parent) {
 		var obj;
 		if (poolEmpty) {
@@ -80,7 +82,7 @@ var Flag = (function() {
 
 		var tempRadius = 30;
 
-		var line = Line.new();
+		var line = Line.new(), trailLine = Line.new();
 
 		var temp = {
 			update: function() {
@@ -100,7 +102,7 @@ var Flag = (function() {
 				}
 			},
 			render: (function() {
-				return function() {
+				function render() {
 					if (parent && (line.distanceSquared > radiusSquared) && show) {
 						context.save();
 
@@ -108,44 +110,21 @@ var Flag = (function() {
 						context.moveTo(tempRadius, 0);
 						context.arc(0, 0, tempRadius, 0, circle, true);
 
-						if (line.distance - radius - tempRadius > 30) {
-							context.rotate(line.angle);
-							context.moveTo(0, tempRadius);
-							context.lineTo(10, tempRadius+20);
-							context.lineTo(-10, tempRadius+20);
-							context.lineTo(0, tempRadius);
-						}
-
 						context.restore();
 					}
-				};
-			})(),
-			renderLine: (function() {
-				var dash = [10, 5], dashOffset = 0;
-				return function() {
+				}
+				render.line = function() {
 					if (parent && (line.distanceSquared > radiusSquared)) {
-						context.beginPath();
-						context.save();
-						context.setLineDash(dash);
-						context.lineDashOffset = --dashOffset;
-						context.moveTo(line.fromX + (line.normX * radius), line.fromY + (line.normY * radius));
-						if (show) {
-							var arrow = (line.distance - radius - tempRadius > 30);
-							context.lineTo(
-								line.toX - (line.normX * tempRadius) - (arrow ? line.normX * 20 : 0),
-								line.toY - (line.normY * tempRadius) - (arrow ? line.normY * 20 : 0)
-							);
-						}
-						else {
-							context.lineTo(line.toX, line.toY);
-						}
-						context.stroke();
-						context.restore();
+						drawTrail(parent, temp);
 					}
 				};
+
+				return render;
 			})()
 		};
 		Object.defineProperties(temp, {
+			radius: { get: function() { return tempRadius; } },
+
 			parent: {
 				get: function() { return parent; },
 				set: function(value) {
@@ -159,6 +138,7 @@ var Flag = (function() {
 					}
 				}
 			},
+			show: { get: function() { return show; } },
 
 			x: {
 				get: function() { return x; },
@@ -184,6 +164,7 @@ var Flag = (function() {
 
 	Flag.update = function() {
 		temp.update();
+		drawTrail.update();
 	};
 	Flag.render = function() {
 		context.save();
@@ -199,14 +180,12 @@ var Flag = (function() {
 			context.arc(0, 0, radius, 0, circle, true);
 			context.restore();
 		}
-		context.strokeStyle = "white"; context.stroke();
-		
+		context.stroke();
+
 		context.restore();
 
-		temp.renderLine();
+		temp.render.line();
 	};
-
-	//Flag.prototype = {};
 
 	return Flag;
 })();
