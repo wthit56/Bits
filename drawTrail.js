@@ -1,7 +1,7 @@
 var drawTrail = (function() {
 	var width = 20, mid = width / 2, tailOffset;
-	var dashLength = 40, gapLength = 20, lineLength = dashLength + gapLength;
-	var offset = 0, offsetSpeed = 100 / 1000, _offset = false;
+	var dashLength = width * 2.5, gapLength = width, lineLength = dashLength + gapLength;
+	var offset = 0, offsetSpeed = lineLength * 2 / 1000, _offset = false;
 
 	var source = (function() {
 		var source = document.createElement("CANVAS");
@@ -69,7 +69,7 @@ var drawTrail = (function() {
 		//*/
 
 		context.translate((width + 1) * 2, 0);
-		context.beginPath(); context.rect(0, 0, 20, lineLength); context.clip();
+		context.beginPath(); context.rect(0, 0, width, lineLength); context.clip();
 		source.render = function() {
 			context.clearRect(0, 0, width, lineLength);
 			context.drawImage(source, width + 1, 0, width, dashLength, 0, -offset, width, dashLength);
