@@ -19,9 +19,11 @@ var input = (function() {
 	};
 	input.up = function(e) {
 		if (e.button === 0) {
+			console.log("up");
 			if (flagging) {
 				flagging.to.x = e.pageX;
 				flagging.to.y = e.pageY;
+				console.log("parent to null");
 				Flag.temp.parent = null;
 				flagging = null;
 			}
@@ -42,6 +44,7 @@ var input = (function() {
 						found = Flag.findNearest(x, y);
 						if (found) {
 							input.flag = found;
+							console.log("nearest found", found);
 							Flag.temp.parent = found;
 							found = null;
 						}

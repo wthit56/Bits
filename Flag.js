@@ -11,7 +11,7 @@ var Flag = (function() {
 	function Flag() { throw "Do not use `new Flag()`."; }
 	Flag.radius = radius;
 
-	Flag.add = function(x, y, parent) {
+	Flag.add = function(x, y, parent, trailOffset) {
 		var obj;
 		if (poolEmpty) {
 			obj = Object.create({}, Flag.prototype);
@@ -26,6 +26,7 @@ var Flag = (function() {
 		obj.parent = parent;
 		obj.complete = Math.random();
 		obj.share = Math.random();
+		obj.trailOffset = trailOffset ? trailOffset : Math.random();
 		all.push(obj);
 		count++;
 		
@@ -83,6 +84,7 @@ var Flag = (function() {
 		var tempRadius = 30;
 
 		var line = Line.new(), trailLine = Line.new();
+		var trailOffset;
 
 		var temp = {
 			update: function() {
@@ -96,11 +98,11 @@ var Flag = (function() {
 				}
 				if (dropping) {
 					if (show) {
-						Flag.add(x, y, this.parent);
+						Flag.add(x, y, this.parent, trailOffset);
 						show = false;
 					}
 					document.body.style.cursor = "auto";
-					this.parent = null;
+					parent = null;
 					dropping = false;
 				}
 			},
@@ -123,10 +125,10 @@ var Flag = (function() {
 					if (parent && (line.distanceSquared > radiusSquared)) {
 						document.body.style.cursor = "none";
 						drawTrail(
-							parent, {
-								x: temp.x - (show ? line.normX * tempRadius : 0),
-								y: temp.y - (show ? line.normY * tempRadius : 0)
-							}
+							parent.x, parent.y,
+							temp.x - (show ? line.normX * tempRadius : 0),
+							temp.y - (show ? line.normY * tempRadius : 0),
+							trailOffset
 						);
 					}
 				};
@@ -141,12 +143,15 @@ var Flag = (function() {
 				get: function() { return parent; },
 				set: function(value) {
 					if (value !== parent) {
-						parent = value;
-						if (parent) {
+						if (value) {
+							parent = value;
 							stale = true;
-							line.from = this.parent;
+							line.from = parent;
+							trailOffset = Math.random();
 						}
-						else { dropping = true; }
+						else {
+							dropping = true;
+						}
 					}
 				}
 			},
@@ -193,6 +198,16 @@ var Flag = (function() {
 			context.restore();
 		}
 		context.stroke();
+
+		for (i = 0; i < count; i++) {
+			if (all[i].parent) {
+				drawTrail(
+					all[i].parent.x, all[i].parent.y,
+					all[i].x, all[i].y,
+					all[i].trailOffset, false
+				);
+			}
+		}
 
 		context.restore();
 

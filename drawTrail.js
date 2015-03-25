@@ -29,7 +29,7 @@ var drawTrail = (function() {
 			context.fill(); context.restore();
 		}
 
-		{ // tail
+		{ /* tail
 			context.save(); context.translate(0, 20);
 
 			var circle = Math.PI * 2, halfCircle = Math.PI, quarterCircle = Math.PI / 2;
@@ -44,7 +44,7 @@ var drawTrail = (function() {
 			tailOffset = Math.ceil(radius - Math.sqrt((radius * radius) - ((x / 2) * (x / 2))));
 
 			context.restore();
-		}
+		//*/ }
 		{ // dash
 			context.save(); context.fillStyle = gradient; context.translate(width + 1, 0);
 
@@ -92,15 +92,26 @@ var drawTrail = (function() {
 	//})();
 
 	var line = Line.new(), pattern;
-	function drawTrail(from, to) {
+	function drawTrail(fromX, fromY, toX, toY, offset, precise) {
+		precise = (precise !== false);
 		if (!_offset) {
 			source.render();
 			pattern = context.createPattern(source, "repeat-y");
 			_offset = true;
 		}
+		offset *= lineLength;
 
-		line.from = from; line.to = to;
-		
+		line.fromX = fromX; line.fromY = fromY;
+		line.toX = toX; line.toY = toY;
+		if (!precise) {
+			toX = line.toX - (line.normX * radius);
+			toY = line.toY - (line.normY * radius);
+			line.toX = toX; line.toY = toY;
+		}
+
+		//console.log(line.fromX, line.fromY, line.toX, line.toY);
+		console.log(line.fromX);
+
 		context.save();
 		context.rotate(line.angle);
 		context.translate(line.fromX, line.fromY);
@@ -118,9 +129,9 @@ var drawTrail = (function() {
 				context.drawImage(source, 0, 0, width, width, -mid, -Flag.radius - mid, width, width);
 				context.drawImage(source, 0, 0, width, width, -mid, -line.distance, width, width);
 
-				context.translate((-width * 2.5) - 2, 0);
+				context.translate((-width * 2.5) - 2, offset);
 				context.fillStyle = pattern;
-				context.fillRect((width * 2) + 2, line.fromY, width, -line.distance);
+				context.fillRect((width * 2) + 2, line.fromY - offset, width, -line.distance);
 			}
 			else {
 				context.beginPath();
