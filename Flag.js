@@ -199,6 +199,8 @@ var Flag = (function() {
 		}
 		context.stroke();
 
+		context.save();
+		context.globalAlpha = 0.5;
 		for (i = 0; i < count; i++) {
 			if (all[i].parent) {
 				drawTrail(
@@ -208,6 +210,7 @@ var Flag = (function() {
 				);
 			}
 		}
+		context.restore();
 
 		context.restore();
 
